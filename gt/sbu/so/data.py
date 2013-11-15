@@ -4,12 +4,13 @@ import random
 import codecs
 
 ###Parameters
-testP           = 0.9 #rand >= testP for test sample
-negativeP       = 0.45 # rand >= negativeP for negative sample
-negativePTest   = 0.50 # rand >= negativeP for negative sample
-trainFile       = '/Users/gt/CookScrap/VR/moretrainSamples.txt' #train samples generated and then used
-testFile        = '/Users/gt/CookScrap/VR/moretestSamples.txt'  # same for test samples
-archiveLocation = '/Users/gt/CookScrap/VR/transitions-2-pretty-V'
+testFileList    = '/Users/gt/CookScrap/VR/Experiments/testFileList'
+trainFileList   = '/Users/gt/CookScrap/VR/Experiments/trainFileList'
+valFileList     = '/Users/gt/CookScrap/VR/Experiments/valFileList'
+negP            = 0.50 # rand >= negativeP for negative sample
+trainFile       = '/Users/gt/CookScrap/VR/Experiments/moretrainSamples.txt' #train samples generated and then used
+testFile        = '/Users/gt/CookScrap/VR/Experiments/moretestSamples.txt'  # same for test samples
+validFile       = '/Users/gt/CookScrap/VR/Experiments/moreValidSamples.txt'
 encoding        = 'utf-8' #encoding per website
 stopLimit       = 612 #dev parameter - to control the generation process
 blockSeparator  = ' #BLOCK# ' #separator for 2 blocks
@@ -36,20 +37,21 @@ def get_training_data():
 def get_test_data():
   return get_experiment_data(testFile)
 
-def prepare_training_data():
-  import commands
+def get_validation_data():
+  return get_experiment_data(validFile)
+
+def prepare_experiment_data(inpFileList, outFile):
+
   from BeautifulSoup import BeautifulSoup
 
-  trainSamples = codecs.open(trainFile, 'w', encoding)
-  testSamples  = codecs.open(testFile , 'w', encoding)
+  samples      = codecs.open(outFile, 'w', encoding)
+  files        = open(inpFileList)
 
-  files        = commands.getoutput('find ' + archiveLocation +
-                                    ' -type f ')
 
-  limit = 1
-  for htmlf in files.rstrip().split('\n'):
-    if limit == stopLimit: break
-    limit +=1
+  for htmlf in files.readlines():
+
+    htmlf = htmlf.rstrip()
+    htmlf = htmlf.replace('\n','')
     f = codecs.open(htmlf, 'r', encoding)
     text = ''
     for line in f.readlines():
@@ -61,56 +63,45 @@ def prepare_training_data():
     #first table contains the steps
     trs = tables[0].findAll('tr')
 
-    prev = None
-    for tr in trs:
-      tds = tr.findAll('td')
-      if(len(tds) == 0): continue  #th row
-      if prev == None:
-        prev = tds[1].text #second column has text
-        continue
 
-      curr = tds[1].text
-
-      tP = round(random.random(),2)
-      nP = round(random.random(),2)
-
-      if tP >= testP:
-        if nP >= negativePTest:
-          sample = curr + blockSeparator \
-                   + prev + labelSeparator + '-'
+    #ignoring the th row from the table
+    for i in range(1,len(trs)):
+      predecessor = trs[i].findAll('td')[1].text
+      for j in range(i+1, len(trs)):
+        successor = trs[j].findAll('td')[1].text
+        tP = round(random.random(),2)
+        if tP >= negP:
+          sample = successor + blockSeparator \
+                   + predecessor + labelSeparator + '-'
         else:
-          sample = prev + blockSeparator \
-                   + curr + labelSeparator + '+'
+          sample = predecessor + blockSeparator \
+                   + successor + labelSeparator + '+'
 
-        testSamples.write(sample + '\n')
-      else:
-        if nP >= negativeP:
-          sample = curr + blockSeparator \
-                   + prev + labelSeparator + '-'
-        else:
-          sample = prev + blockSeparator \
-                   + curr + labelSeparator + '+'
+        samples.write(sample + '\n')
 
-        trainSamples.write(sample + '\n')
+  files.close()
+  samples.close()
 
-      prev = curr
 
-  testSamples.close()
-  trainSamples.close()
+def prepare_validation_data():
+  prepare_experiment_data(valFileList, validFile)
+
+def prepare_train_data():
+  prepare_experiment_data(trainFileList, trainFile)
 
 def prepare_test_data():
-  pass
+  prepare_experiment_data(testFileList, testFile)
 
-def preprocess():
-  prepare_training_data()
+def extract_data():
+  prepare_train_data()
+  prepare_validation_data()
   prepare_test_data()
 
 def test_data_extraction():
-  pass
+  prepare_test_data()
 
 def main():
-  test_data_extraction()
-
+  extract_data()
 
 if __name__ == '__main__':
   main()
