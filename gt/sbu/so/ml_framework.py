@@ -110,9 +110,46 @@ def findEstimator():
   ft_extractor, X = get_features(sents)
   getBestEstimator(X,labels)
 
+def train_and_save():
+  from sklearn.externals import joblib
+  # print 'getting training data...'
+  sents, labels = get_training_data()
+  # pprint(sents)
+  # pprint(labels)
+  print 'Training set size ' + str(len(labels))
+
+  # print 'training on the data...'
+  ft_xtractor, clf = train(sents, labels)
+
+  print 'number of features: ' + str(len(ft_xtractor.get_feature_names()))
+  joblib.dump(ft_xtractor, 'ft_xtractor_moretrainSamples.pkl')
+  joblib.dump(clf, 'clf_rbf_all_words_ordered.pkl')
+
+def load_and_validate(ft_ext_file, clf_file):
+  from sklearn.externals import joblib
+  ft_xtractor = joblib.load(ft_ext_file)
+  clf = joblib.load(clf_file)
+
+  # print 'getting test data...'
+  valid_sents, expected_labels = get_validation_data()
+  # pprint(test_sents)
+  # pprint(expected_labels)
+  print 'Testing set size ' + str(len(expected_labels))
+
+  # print 'using the model to predict...'
+  pred_labels = test(valid_sents, ft_xtractor, clf)
+  correct = evaluate(pred_labels, expected_labels)
+
+  print 'prediction accuracy...'
+  print str((correct * 100.0) / len(expected_labels))
+
+
+
 
 def main():
-  run_classifier()
+  #run_classifier()
+  # train_and_save()
+  load_and_validate('ft_xtractor_moretrainSamples.pkl', 'clf_rbf_all_words_ordered.pkl')
 
 
 if __name__ == '__main__':
