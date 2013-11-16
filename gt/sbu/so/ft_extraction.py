@@ -1,9 +1,10 @@
 __author__ = 'gt'
-from sklearn.feature_extraction.text import  TfidfVectorizer
+from sklearn.feature_extraction.text import  CountVectorizer
 
 from nltk import word_tokenize
 from nltk import pos_tag
 from nltk import PorterStemmer
+import re
 
 from pprint import pprint
 stemmer = PorterStemmer()
@@ -11,6 +12,8 @@ stemmer = PorterStemmer()
 from gt.sbu.so.data import blockSeparator
 from gt.sbu.so.data import encoding
 
+
+punc_rx = re.compile(r'[^#A-Za-z0-9]+', re.DOTALL)
 #POSTags looked up from http://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
 ###Parameters
 #Both stanford pos tagger and default nlkt pos tagger are using same labels for pos taggin
@@ -88,6 +91,7 @@ def stanford_corenlp_filter(sent):
 
 def filter_text(sent):
   # return stanford_corenlp_filter(sent)
+  sent = re.sub(punc_rx, ' ', sent)
   return nltk_filter(sent)
   # sents = sent.split(blockSeparator)
   # sent = sents[0] + ' ' + sents[1]
@@ -95,10 +99,10 @@ def filter_text(sent):
 
 
 def get_features(sents):
-  # vec = CountVectorizer(min_df=1, binary=True, tokenizer=word_tokenize,
-  #                       preprocessor=filter_text, ngram_range=(1,2) )
-  vec = TfidfVectorizer(min_df=1, tokenizer=word_tokenize,
+  vec = CountVectorizer(min_df=1, binary=True, tokenizer=word_tokenize,
                         preprocessor=filter_text, ngram_range=(1,2) )
+  # vec = TfidfVectorizer(min_df=1, tokenizer=word_tokenize,
+  #                       preprocessor=filter_text, ngram_range=(1,2) )
   X   = vec.fit_transform(sents)
   #pprint(str(X))
   return vec, X

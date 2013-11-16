@@ -1,6 +1,6 @@
 __author__ = 'gt'
 
-from gt.sbu.so.data import get_training_data, get_test_data
+from gt.sbu.so.data import get_training_data, get_test_data, get_validation_data
 from gt.sbu.so.ft_extraction import get_features
 from sklearn import svm
 
@@ -68,8 +68,8 @@ def evaluate(observed, expected):
         tpr +=1
       ctr+=1
 
-  tpr = tpr * 100.0
-  fpr = fpr * 100.0
+  tpr = tpr * 1.0
+  fpr = fpr * 1.0
   tpr = tpr / (len([x for x in expected if x == '+']))
   fpr = fpr / (len([x for x in expected if x == '-']))
   print "TPR " + str(tpr)
@@ -93,13 +93,13 @@ def run_classifier():
   print 'number of features: ' + str(len(ft_xtractor.get_feature_names()))
 
   # print 'getting test data...'
-  test_sents, expected_labels = get_test_data()
+  valid_sents, expected_labels = get_validation_data()
   # pprint(test_sents)
   # pprint(expected_labels)
   print 'Testing set size ' + str(len(expected_labels))
 
   # print 'using the model to predict...'
-  pred_labels = test(test_sents, ft_xtractor, clf)
+  pred_labels = test(valid_sents, ft_xtractor, clf)
   correct = evaluate(pred_labels, expected_labels)
 
   print 'prediction accuracy...'
@@ -116,5 +116,8 @@ def main():
 
 
 if __name__ == '__main__':
+  import time
+  start_time = time.time()
   main()
+  print time.time() - start_time, "seconds"
   print '#############'
