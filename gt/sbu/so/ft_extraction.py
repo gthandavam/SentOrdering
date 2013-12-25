@@ -100,10 +100,11 @@ def filter_text(sent):
 
 def get_features(sents):
   vec = CountVectorizer(min_df=1, binary=True, tokenizer=word_tokenize,
-                        preprocessor=filter_text, ngram_range=(1,2) )
+                        preprocessor=filter_text, ngram_range=(1) )
   # vec = TfidfVectorizer(min_df=1, tokenizer=word_tokenize,
   #                       preprocessor=filter_text, ngram_range=(1,2) )
   X   = vec.fit_transform(sents)
+
   #pprint(str(X))
   return vec, X
 
@@ -116,6 +117,8 @@ def test_features():
     'Is this the first document ?     #BLOCK# Yes it does',
   ]
   vec, X = get_features(corpus)
+
+
 
   print vec.get_params()
   print vec.get_feature_names()
