@@ -1,4 +1,4 @@
-#http://xcorr.net/2013/06/12/load-pickle-files-in-matlab/
+%http://xcorr.net/2013/06/12/load-pickle-files-in-matlab/
 function [a] = loadpickle(filename)
     if ~exist(filename,'file')
         error('%s is not a file',filename);
